@@ -4,7 +4,7 @@ const { gql } = require('@apollo/client')
 
 export const getSeedMutations = async () => {
   const res = await fetch(
-    'https://cdn.neo4jlabs.com/data/grandstack_businesses.csv'
+    'https://docs.google.com/spreadsheets/d/1bfYxkTGKsbmx1lkC43VI9Ig2OECF3x679vSoUP3DcjY/gviz/tq?tqx=out:csv&sheet=seeds'
   )
   const body = await res.text()
   const records = parse(body, { columns: true })
@@ -44,6 +44,7 @@ const generateMutations = (records) => {
           $reviewText: String
           $reviewDate: DateTime
           $reviewStars: Float
+          $reviewAnimal: String
           $categories: [String!]!
         ) {
           user: mergeUser(userId: $userId, name: $userName) {
@@ -72,6 +73,7 @@ const generateMutations = (records) => {
             input: {
               reviewId: $reviewId
               stars: $reviewStars
+              animal: $reviewAnimal
               text: $reviewText
               date: $reviewDate
               business: { connect: { where: { businessId: $businessId } } }

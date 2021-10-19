@@ -36,6 +36,7 @@ type Business {
 type Review {
   reviewId: ID!
   stars: Float
+  animal: String
   text: String
   date: DateTime
   business: Business @relationship(type: "REVIEWS", direction: OUT)

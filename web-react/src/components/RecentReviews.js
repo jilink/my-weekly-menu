@@ -20,6 +20,7 @@ const GET_RECENT_REVIEWS_QUERY = gql`
       date
       text
       stars
+      animal
     }
   }
 `
@@ -39,7 +40,8 @@ export default function RecentReviews() {
             <TableCell>Business Name</TableCell>
             <TableCell>User Name</TableCell>
             <TableCell>Review Text</TableCell>
-            <TableCell align="right">Review Stars</TableCell>
+            <TableCell> Stars</TableCell>
+            <TableCell align="right">Favourite animal</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -49,7 +51,8 @@ export default function RecentReviews() {
               <TableCell>{row.business.name}</TableCell>
               <TableCell>{row.user.name}</TableCell>
               <TableCell>{row.text}</TableCell>
-              <TableCell align="right">{row.stars}</TableCell>
+              <TableCell>{row.stars}</TableCell>
+              <TableCell align="right">{row.animal}</TableCell>
             </TableRow>
           ))}
         </TableBody>
