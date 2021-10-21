@@ -1,21 +1,11 @@
 scalar Point
-scalar DateTime
 scalar PointInput
+scalar DateTime
 
 type User {
-  userId: ID!
-  name: String
-  reviews: [Review] @relationship(type: "WROTE", direction: OUT)
-  avgStars: Float
-    @cypher(
-      statement: "MATCH (this)-[:WROTE]->(r:Review) RETURN toFloat(avg(r.stars))"
-    )
-  numReviews: Int
-    @cypher(statement: "MATCH (this)-[:WROTE]->(r:Review) RETURN COUNT(r)")
-  recommendations(first: Int = 3): [Business]
-    @cypher(
-      statement: "MATCH (this)-[:WROTE]->(r:Review)-[:REVIEWS]->(:Business)<-[:REVIEWS]-(:Review)<-[:WROTE]-(:User)-[:WROTE]->(:Review)-[:REVIEWS]->(rec:Business) WHERE NOT EXISTS( (this)-[:WROTE]->(:Review)-[:REVIEWS]->(rec) ) WITH rec, COUNT(*) AS num ORDER BY num DESC LIMIT $first RETURN rec"
-    )
+  id: ID!
+  mail: String!
+  password: String! @private
 }
 
 type Business {
@@ -53,45 +43,21 @@ type RatingCount @exclude {
   count: Int!
 }
 
+type AuthToken {
+  token: String!
+}
+
 type Mutation {
-  mergeBusinessCategory(categories: [String!]!, businessId: ID!): Business
-    @cypher(
-      statement: "MATCH (b:Business {businessId: $businessId}) UNWIND $categories AS cat MERGE (c:Category {name: cat}) MERGE (b)-[:IN_CATEGORY]->(c) RETURN b"
-    )
-  mergeUser(name: String!, userId: ID!): User
-    @cypher(
-      statement: """
-      MERGE (u:User {userId: $userId})
-      ON CREATE SET u.name = $name
-      RETURN u
-      """
-    )
-  mergeBusiness(
-    businessId: ID!
-    name: String!
-    address: String!
-    city: String!
-    state: String!
-    latitude: Float!
-    longitude: Float!
-  ): Business
-    @cypher(
-      statement: """
-      MERGE (b:Business {businessId: $businessId})
-      ON CREATE SET b.name = $name,
-                    b.address = $address,
-                    b.city = $city,
-                    b.state = $state,
-                    b.location = Point({latitude: $latitude, longitude: $longitude})
-      RETURN b
-      """
-    )
+  signup(mail: String!, password: String!): AuthToken
+  login(mail: String!, password: String!): AuthToken
 }
 
 type Query {
-  userCount: Int! @cypher(statement: "MATCH (u:User) RETURN COUNT(u)")
-  ratingsCount: [RatingCount]
+  currentUser: User
     @cypher(
-      statement: "MATCH (r:Review) WITH r.stars AS stars, COUNT(*) AS count ORDER BY stars RETURN {stars: stars, count: count}"
+      statement: """
+      MATCH (u:User {id: $auth.jwt.id})
+      RETURN u
+      """
     )
 }
