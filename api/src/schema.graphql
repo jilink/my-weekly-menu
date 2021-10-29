@@ -3,44 +3,15 @@ scalar PointInput
 scalar DateTime
 
 type User {
-  id: ID!
+  userId: ID!
   mail: String!
   password: String! @private
+  meals: [Meal!] @relationship(type: "IN_MEALS", direction: OUT)
 }
 
-type Business {
-  businessId: ID!
+type Meal {
   name: String!
-  address: String
-  city: String
-  state: String
-  location: Point
-  avgStars: Float
-    @cypher(
-      statement: "MATCH (this)<-[:REVIEWS]-(r:Review) RETURN coalesce(avg(r.stars),0.0)"
-    )
-  reviews: [Review] @relationship(type: "REVIEWS", direction: IN)
-  categories: [Category] @relationship(type: "IN_CATEGORY", direction: OUT)
-}
-
-type Review {
-  reviewId: ID!
-  stars: Float
-  animal: String
-  text: String
-  date: DateTime
-  business: Business @relationship(type: "REVIEWS", direction: OUT)
-  user: User @relationship(type: "WROTE", direction: IN)
-}
-
-type Category {
-  name: ID!
-  businesses: [Business] @relationship(type: "IN_CATEGORY", direction: IN)
-}
-
-type RatingCount @exclude {
-  stars: Float!
-  count: Int!
+  createdBy: User! @relationship(type: "IN_MEALS", direction: IN)
 }
 
 type AuthToken {
@@ -50,13 +21,21 @@ type AuthToken {
 type Mutation {
   signup(mail: String!, password: String!): AuthToken
   login(mail: String!, password: String!): AuthToken
+  createMeal(name: String!): Meal
+    @cypher(
+      statement: """
+      MATCH (u:User {userId: $auth.jwt.userId})
+      MERGE (u)-[r:IN_MEALS]->(m:Meal {name: $name})
+      RETURN m
+      """
+    )
 }
 
 type Query {
   currentUser: User
     @cypher(
       statement: """
-      MATCH (u:User {id: $auth.jwt.id})
+      MATCH (u:User {userId: $auth.jwt.userId})
       RETURN u
       """
     )

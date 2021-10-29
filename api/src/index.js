@@ -37,16 +37,16 @@ const resolvers = {
       return session
         .run(
           `
-        CREATE (u:User) SET u += $args, u.id = randomUUID()
+        CREATE (u:User) SET u += $args, u.userId = randomUUID()
         RETURN u`,
           { args }
         )
         .then((res) => {
           session.close()
-          const { id, mail } = res.records[0].get('u').properties
+          const { userId, mail } = res.records[0].get('u').properties
 
           return {
-            token: jwt.sign({ id, mail }, process.env.JWT_SECRET, {
+            token: jwt.sign({ userId, mail }, process.env.JWT_SECRET, {
               expiresIn: '30d',
             }),
           }
@@ -65,13 +65,13 @@ const resolvers = {
         )
         .then((res) => {
           session.close()
-          const { id, mail, password } = res.records[0].get('u').properties
+          const { userId, mail, password } = res.records[0].get('u').properties
           if (!compareSync(args.password, password)) {
             // is this the same password ?
             throw new Error('Authorization Error')
           }
           return {
-            token: jwt.sign({ id, mail }, process.env.JWT_SECRET, {
+            token: jwt.sign({ userId, mail }, process.env.JWT_SECRET, {
               expiresIn: '30d',
             }),
           }
